@@ -22,6 +22,30 @@ export const resolvers = {
         createdAt: lead.createdAt.toISOString(),
         services: lead.services.map((ls) => ls.service.name)
       }));
+    },
+    lead: async (_: unknown, { id }: { id: string }, { prisma }: Context) => {
+        const lead = await prisma.lead.findUnique({
+        where: { id },
+        include: {
+            services: {
+                include: { service: true }
+            }
+        }
+        });
+
+        if (!lead) {
+            throw new Error(`Lead with ID ${id} not found`);
+        }
+
+        return {
+            id: lead.id,
+            name: lead.name,
+            email: lead.email,
+            mobile: lead.mobile,
+            postcode: lead.postcode,
+            createdAt: lead.createdAt.toISOString(),
+            services: lead.services.map((ls) => ls.service.name)
+        };
     }
   },
   Mutation: {
