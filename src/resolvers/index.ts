@@ -2,6 +2,28 @@ import { ServiceType, Service } from '@prisma/client';
 import { Context, RegisterLeadInput } from '../types';
 
 export const resolvers = {
+  Query: {
+    leads: async (_: unknown, __: unknown, { prisma }: Context) => {
+      const leads = await prisma.lead.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+          services: {
+            include: { service: true }
+          }
+        }
+      });
+
+      return leads.map((lead) => ({
+        id: lead.id,
+        name: lead.name,
+        email: lead.email,
+        mobile: lead.mobile,
+        postcode: lead.postcode,
+        createdAt: lead.createdAt.toISOString(),
+        services: lead.services.map((ls) => ls.service.name)
+      }));
+    }
+  },
   Mutation: {
     register: async (
       _: unknown,
@@ -55,7 +77,5 @@ export const resolvers = {
         services: lead.services.map((ls: { service: { name: ServiceType } }) => ls.service.name)
       };
     }
-  },
-
-  Query: {}
+  }
 };
